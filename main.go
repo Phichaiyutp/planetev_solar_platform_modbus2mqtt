@@ -10,15 +10,28 @@ import (
 	"modbus-mqtt-service/internal/mqtt"
 	"modbus-mqtt-service/internal/processor"
 
+	"github.com/joho/godotenv"
 	"github.com/robfig/cron/v3"
 )
 
 func main() {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Error loading .env file: %v", err)
+		os.Exit(1) // Ensures non-zero exit on error
+	}
+
 	// Load environment variables
 	deviceSettingURL := os.Getenv("DEVICE_SETTING_URL")
 	mqttBrokerURL := os.Getenv("MQTT_BROKER_URL")
 	mqttUsername := os.Getenv("MQTT_USERNAME")
 	mqttPassword := os.Getenv("MQTT_PASSWORD")
+
+	// Check if deviceSettingURL is empty
+	if deviceSettingURL == "" {
+		log.Fatalf("DEVICE_SETTING_URL is not set in environment variables")
+	}
 
 	// Load configuration from JSON file
 	deviceSetting, err := processor.LoadConfig(deviceSettingURL)
@@ -28,6 +41,15 @@ func main() {
 	}
 
 	// Initialize Modbus client
+	// Assuming you need to ping a specific HTTP endpoint to check if the Modbus converter is available
+	modbusPingURL := fmt.Sprintf("http://%s", deviceSetting.DeviceIp) // Adjust the path as necessary
+
+	err = processor.PingHTTP(modbusPingURL)
+	if err != nil {
+		log.Fatalf("Error connecting to Modbus Converter: %v", err)
+		os.Exit(1) // Ensures non-zero exit on error
+	}
+
 	address := fmt.Sprintf("%s:%d", deviceSetting.DeviceIp, deviceSetting.DevicePort)
 	modbusClient, err := modbus.NewClient(address, byte(deviceSetting.SlaveId), 1*time.Second)
 	if err != nil {

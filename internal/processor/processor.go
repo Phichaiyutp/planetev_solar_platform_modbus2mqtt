@@ -60,6 +60,28 @@ func LoadConfig(url string) (models.DeviceSetting, error) {
 	return deviceSetting, nil
 }
 
+// PingHTTP tests the availability of the provided URL
+func PingHTTP(url string) error {
+	// Set a timeout for the HTTP request
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	// Perform a GET request
+	response, err := client.Get(url)
+	if err != nil {
+		return fmt.Errorf("failed to ping URL: %w", err)
+	}
+	defer response.Body.Close() // Ensure response body is closed after function execution
+
+	// Check if the HTTP status code is OK
+	if response.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to ping URL: received status code %d", response.StatusCode)
+	}
+
+	return nil
+}
+
 // groupRegisters groups registers with addresses that are close to each other (difference <= 2).
 func groupRegisters(registers []models.Register) [][]models.Register {
 	if len(registers) == 0 {
