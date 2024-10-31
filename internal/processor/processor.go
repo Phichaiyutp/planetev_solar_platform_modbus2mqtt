@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"time"
 
@@ -107,6 +108,7 @@ func (p *Processor) ProcessData() {
 		results, err := p.modbusClient.ReadInputRegisters(startAddr, endAddr-startAddr+2)
 		if err != nil {
 			log.Fatalf("Error reading from modbus device: %v", err)
+			os.Exit(1) // Ensures non-zero exit on error
 		}
 
 		processRegisterData(group, results, &payload)
@@ -114,5 +116,6 @@ func (p *Processor) ProcessData() {
 	topic := p.processorId
 	if err := p.mqttClient.PublishData(topic, payload); err != nil {
 		log.Fatalf("Error sending to MQTT server: %v", err)
+		os.Exit(1) // Ensures non-zero exit on error
 	}
 }
