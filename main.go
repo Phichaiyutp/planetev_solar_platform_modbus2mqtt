@@ -15,7 +15,7 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-func loadEnvVariables() (string, string, string, string, string, string, string, string) {
+func loadEnvVariables() (string, string, string, string, string, string, string, string, string) {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
@@ -28,17 +28,18 @@ func loadEnvVariables() (string, string, string, string, string, string, string,
 	mongodbPort := os.Getenv("MONGODB_PORT")
 	mongodbUsername := os.Getenv("MONGODB_USERNAME")
 	mongodbPassword := os.Getenv("MONGODB_PASSWORD")
+	mongodbDbName := os.Getenv("MONGODB_DB_NAME")
 
 	if deviceSettingURL == "" {
 		log.Fatalf("DEVICE_SETTING_URL is not set in environment variables")
 	}
 
-	return deviceSettingURL, mqttBrokerURL, mqttUsername, mqttPassword, mongodbURL, mongodbPort, mongodbUsername, mongodbPassword
+	return deviceSettingURL, mqttBrokerURL, mqttUsername, mqttPassword, mongodbURL, mongodbPort, mongodbUsername, mongodbPassword, mongodbDbName
 }
 
 func main() {
 	// Load environment variables
-	deviceSettingURL, mqttBrokerURL, mqttUsername, mqttPassword, mongodbURL, mongodbPort, mongodbUsername, mongodbPassword := loadEnvVariables()
+	deviceSettingURL, mqttBrokerURL, mqttUsername, mqttPassword, mongodbURL, mongodbPort, mongodbUsername, mongodbPassword, mongodbDbName := loadEnvVariables()
 
 	// Load configuration from JSON file
 	deviceSetting, err := processor.LoadConfig(deviceSettingURL)
@@ -62,13 +63,12 @@ func main() {
 	mqttClient := mqtt.NewClient(mqttBrokerURL, mqttUsername, mqttPassword)
 	defer mqttClient.Disconnect()
 
-	// MongoDB connection string
-	mongodbUrlConnectionString := fmt.Sprintf("mongodb://%s:%s@%s:%s", mongodbUsername, mongodbPassword, mongodbURL, mongodbPort)
-	fmt.Println(mongodbUrlConnectionString)
-	mongodbClient, err := mongodb.GetMongoClient(mongodbUrlConnectionString)
+	// MongoDB connection
+	mongodbClient, err := mongodb.GetMongoClient(mongodbUsername, mongodbPassword, mongodbURL, mongodbPort, mongodbDbName)
 	if err != nil {
 		log.Fatalf("Error connecting to MongoDB: %v", err)
 	}
+	defer mongodbClient.CloseClient()
 
 	processorId := fmt.Sprintf("modbus/pnev/%s/%d", deviceSetting.SiteId, deviceSetting.DeviceId)
 

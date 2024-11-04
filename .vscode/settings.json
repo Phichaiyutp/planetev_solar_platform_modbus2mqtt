@@ -2,6 +2,7 @@
     "cSpell.words": [
         "bson",
         "CHINT",
+        "dbname",
         "DTSU",
         "godotenv",
         "Irms",
@@ -11,6 +12,8 @@
         "paho",
         "planetcloud",
         "pnev",
+        "pnevapp",
+        "readpref",
         "robfig",
         "unmarshals",
         "Urms"

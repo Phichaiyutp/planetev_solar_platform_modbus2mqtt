@@ -25,15 +25,21 @@ var (
 )
 
 // GetMongoClient initializes a singleton MongoDB client instance.
-func GetMongoClient(uri string) (*Client, error) {
+func GetMongoClient(username string, password string, host string, port string, dbName string) (*Client, error) {
 	mongoOnce.Do(func() {
-		if uri == "" {
-			uri = "mongodb://localhost:27017" // Default URI if none is provided
-		}
-
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-		clientOptions := options.Client().ApplyURI(uri)
+		// Add credentials if provided
+		credential := options.Credential{
+			AuthMechanism: "SCRAM-SHA-256",
+			AuthSource:    dbName,
+			Username:      username,
+			Password:      password,
+		}
+		uri := fmt.Sprintf("%s:%s", host, port)
+		clientOptions := options.Client().SetHosts(
+			[]string{uri},
+		).SetAuth(credential)
 		mongoClient, err := mongo.Connect(ctx, clientOptions)
 		if err != nil {
 			log.Fatal("Failed to connect to MongoDB:", err)
@@ -59,12 +65,14 @@ func GetMongoClient(uri string) (*Client, error) {
 func (c *Client) InsertOne(databaseName, collectionName string, document interface{}) (*mongo.InsertOneResult, error) {
 	collection := c.client.Database(databaseName).Collection(collectionName)
 
-	// Use the context stored in the client
-	result, err := collection.InsertOne(c.ctx, document)
+	// Increase the timeout for the insert operation
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel() // Ensure we cancel the context to release resources
+	// Use the new context for the insert operation
+	result, err := collection.InsertOne(ctx, document)
 	if err != nil {
 		return nil, fmt.Errorf("failed to insert document: %w", err)
 	}
-
 	return result, nil
 }
 
