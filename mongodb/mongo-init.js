@@ -1,12 +1,13 @@
-db = db.getSiblingDB("iot");
-
 db.createUser({
-    user: "pnevadmin",
-    pwd: "pca%401234",
+    user: "appuser",
+    pwd: "apppassword",
     roles: [
-      {
-        role: 'readWrite', 
-        db: 'iot'
-      },
-    ],
-  });
+        {
+            role: "readWrite",
+            db: "mydatabase"
+        }
+    ]
+});
+
+// Create a test collection
+db.createCollection("test");
