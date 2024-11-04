@@ -63,7 +63,8 @@ func main() {
 	defer mqttClient.Disconnect()
 
 	// MongoDB connection string
-	mongodbUrlConnectionString := fmt.Sprintf("mongodb://%s:%s@%s:%s/?authSource=admin", mongodbUsername, mongodbPassword, mongodbURL, mongodbPort)
+	mongodbUrlConnectionString := fmt.Sprintf("mongodb://%s:%s@%s:%s", mongodbUsername, mongodbPassword, mongodbURL, mongodbPort)
+	fmt.Println(mongodbUrlConnectionString)
 	mongodbClient, err := mongodb.GetMongoClient(mongodbUrlConnectionString)
 	if err != nil {
 		log.Fatalf("Error connecting to MongoDB: %v", err)

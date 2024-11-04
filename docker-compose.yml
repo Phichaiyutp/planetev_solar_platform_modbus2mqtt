@@ -20,15 +20,16 @@ services:
       - wiredTiger
       - --auth
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGODB_USERNAME}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_PASSWORD}
-      - MONGO_INITDB_DATABASE=${MONGODB_DATABASE}
+      - MONGO_INITDB_ROOT_USERNAME=pnevadmin
+      - MONGO_INITDB_ROOT_PASSWORD=pca%041234
+      - MONGO_INITDB_DATABASE=iot
     ports:
       - "28000:27017"
     volumes:
       - mongodb_28000:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
-    env_file: .env
+      - mongodb_28000_log:/var/log/mongodb/
+      - ./mongodb/initdb.d/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
 
 volumes:
   mongodb_28000:
+  mongodb_28000_log:
