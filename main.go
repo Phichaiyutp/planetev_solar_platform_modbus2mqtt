@@ -15,11 +15,11 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-func loadEnvVariables() (string, string, string, string, string, string, string, string, string) {
+func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
-
+	// Load environment variables
 	deviceSettingURL := os.Getenv("DEVICE_SETTING_URL")
 	mqttBrokerURL := os.Getenv("MQTT_BROKER_URL")
 	mqttUsername := os.Getenv("MQTT_USERNAME")
@@ -29,18 +29,6 @@ func loadEnvVariables() (string, string, string, string, string, string, string,
 	mongodbUsername := os.Getenv("MONGODB_USERNAME")
 	mongodbPassword := os.Getenv("MONGODB_PASSWORD")
 	mongodbDbName := os.Getenv("MONGODB_DB_NAME")
-
-	if deviceSettingURL == "" {
-		log.Fatalf("DEVICE_SETTING_URL is not set in environment variables")
-	}
-
-	return deviceSettingURL, mqttBrokerURL, mqttUsername, mqttPassword, mongodbURL, mongodbPort, mongodbUsername, mongodbPassword, mongodbDbName
-}
-
-func main() {
-	// Load environment variables
-	deviceSettingURL, mqttBrokerURL, mqttUsername, mqttPassword, mongodbURL, mongodbPort, mongodbUsername, mongodbPassword, mongodbDbName := loadEnvVariables()
-
 	// Load configuration from JSON file
 	deviceSetting, err := processor.LoadConfig(deviceSettingURL)
 	if err != nil {
@@ -48,7 +36,7 @@ func main() {
 	}
 
 	// Initialize Modbus client
-	if err := processor.PingPort(deviceSetting.DeviceIp, int(deviceSetting.DevicePort), 3); err != nil {
+	if err := modbus.PingPort(deviceSetting.DeviceIp, int(deviceSetting.DevicePort), 3); err != nil {
 		log.Fatalf("Error connecting to Modbus Converter: %v", err)
 	}
 

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"net"
 	"net/http"
 	"os"
 	"sort"
@@ -62,20 +61,6 @@ func LoadConfig(url string) (models.DeviceSetting, error) {
 	}
 
 	return deviceSetting, nil
-}
-
-func PingPort(ip string, port int, timeout time.Duration) error {
-	address := fmt.Sprintf("%s:%d", ip, port)
-
-	// Try to establish a udp connection to the specified address with a timeout
-	conn, err := net.DialTimeout("udp", address, timeout)
-	if err != nil {
-		return fmt.Errorf("failed to connect to %s: %v", address, err)
-	}
-	defer conn.Close() // Ensure the connection is closed after function execution
-
-	fmt.Printf("Successfully connected to %s\n", address)
-	return nil
 }
 
 // groupRegisters groups registers with addresses that are close to each other (difference <= 2).
