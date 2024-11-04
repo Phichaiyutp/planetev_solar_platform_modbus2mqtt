@@ -19,7 +19,7 @@ services:
       - 28000:27017
     environment:
       - MONGO_INITDB_ROOT_USERNAME=pnevadmin
-      - MONGO_INITDB_ROOT_PASSWORD=pca@1234
+      - MONGO_INITDB_ROOT_PASSWORD=pca%041234
     volumes:
       - mongodb_28000:/data/db
 
