@@ -15,20 +15,31 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
+func goDotEnvVariable(key string) string {
+	// load .env file
+	err := godotenv.Load(".env")
+
+	if err != nil {
+		log.Fatalf("Error loading .env file")
+	}
+
+	return os.Getenv(key)
+}
+
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
 	// Load environment variables
-	deviceSettingURL := os.Getenv("DEVICE_SETTING_URL")
-	mqttBrokerURL := os.Getenv("MQTT_BROKER_URL")
-	mqttUsername := os.Getenv("MQTT_USERNAME")
-	mqttPassword := os.Getenv("MQTT_PASSWORD")
-	mongodbURL := os.Getenv("MONGODB_URL")
-	mongodbPort := os.Getenv("MONGODB_PORT")
-	mongodbUsername := os.Getenv("MONGODB_USERNAME")
-	mongodbPassword := os.Getenv("MONGODB_PASSWORD")
-	mongodbDbName := os.Getenv("MONGODB_DB_NAME")
+	deviceSettingURL := goDotEnvVariable("DEVICE_SETTING_URL")
+	mqttBrokerURL := goDotEnvVariable("MQTT_BROKER_URL")
+	mqttUsername := goDotEnvVariable("MQTT_USERNAME")
+	mqttPassword := goDotEnvVariable("MQTT_PASSWORD")
+	mongodbURL := goDotEnvVariable("MONGODB_URL")
+	mongodbPort := goDotEnvVariable("MONGODB_PORT")
+	mongodbUsername := goDotEnvVariable("MONGODB_USERNAME")
+	mongodbPassword := goDotEnvVariable("MONGODB_PASSWORD")
+	mongodbDbName := goDotEnvVariable("MONGODB_DB_NAME")
 	// Load configuration from JSON file
 	deviceSetting, err := processor.LoadConfig(deviceSettingURL)
 	if err != nil {
