@@ -9,7 +9,7 @@ import (
 	"modbus-mqtt-service/pkg/utils"
 )
 
-func processRegisterData(group []models.Register, data []byte, payload *models.Payload) {
+func processRegisterData(group []models.Register, data []byte, payload *models.SensorEnergy) {
 	dataIndex := 0
 
 	for _, reg := range group {
@@ -65,7 +65,7 @@ func decodeValue(reg models.Register, data []byte) interface{} {
 }
 
 // calculateAdditionalData performs custom calculations and adds them to the payload.
-func calculateAdditionalData(payload *models.Payload) {
+func calculateAdditionalData(payload *models.SensorEnergy) {
 	// Create a map to store the extracted values for calculations
 	values := make(map[string]float64)
 

@@ -30,7 +30,7 @@ type DataEntry struct {
 }
 
 // Payload represents the structure of the data to be sent to MQTT.
-type Payload struct {
+type SensorEnergy struct {
 	Timestamp   time.Time   `json:"timestamp"`
 	UnixTime    int64       `json:"unix_time"`
 	SiteId      string      `json:"site_id"`

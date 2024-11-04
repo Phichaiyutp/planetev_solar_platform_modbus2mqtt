@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"sort"
@@ -11,17 +12,19 @@ import (
 
 	"modbus-mqtt-service/internal/modbus"
 	"modbus-mqtt-service/internal/models"
+	"modbus-mqtt-service/internal/mongodb"
 	"modbus-mqtt-service/internal/mqtt"
 )
 
 type Processor struct {
 	modbusClient  *modbus.Client
 	mqttClient    *mqtt.Client
+	mongodbClient *mongodb.Client
 	deviceSetting models.DeviceSetting
 	processorId   string
 }
 
-func NewProcessor(modbusClient *modbus.Client, mqttClient *mqtt.Client, deviceSetting models.DeviceSetting, processorId string) *Processor {
+func NewProcessor(modbusClient *modbus.Client, mqttClient *mqtt.Client, mongodbClient *mongodb.Client, deviceSetting models.DeviceSetting, processorId string) *Processor {
 	// Sort registers by address
 	sort.Slice(deviceSetting.Registers, func(i, j int) bool {
 		return deviceSetting.Registers[i].Address < deviceSetting.Registers[j].Address
@@ -30,6 +33,7 @@ func NewProcessor(modbusClient *modbus.Client, mqttClient *mqtt.Client, deviceSe
 	return &Processor{
 		modbusClient:  modbusClient,
 		mqttClient:    mqttClient,
+		mongodbClient: mongodbClient,
 		deviceSetting: deviceSetting,
 		processorId:   processorId,
 	}
@@ -60,25 +64,17 @@ func LoadConfig(url string) (models.DeviceSetting, error) {
 	return deviceSetting, nil
 }
 
-// PingHTTP tests the availability of the provided URL
-func PingHTTP(url string) error {
-	// Set a timeout for the HTTP request
-	client := http.Client{
-		Timeout: 5 * time.Second,
-	}
+func PingPort(ip string, port int, timeout time.Duration) error {
+	address := fmt.Sprintf("%s:%d", ip, port)
 
-	// Perform a GET request
-	response, err := client.Get(url)
+	// Try to establish a udp connection to the specified address with a timeout
+	conn, err := net.DialTimeout("udp", address, timeout)
 	if err != nil {
-		return fmt.Errorf("failed to ping URL: %w", err)
+		return fmt.Errorf("failed to connect to %s: %v", address, err)
 	}
-	defer response.Body.Close() // Ensure response body is closed after function execution
+	defer conn.Close() // Ensure the connection is closed after function execution
 
-	// Check if the HTTP status code is OK
-	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to ping URL: received status code %d", response.StatusCode)
-	}
-
+	fmt.Printf("Successfully connected to %s\n", address)
 	return nil
 }
 
@@ -113,7 +109,7 @@ func groupRegisters(registers []models.Register) [][]models.Register {
 
 func (p *Processor) ProcessData() {
 	groupedRegisters := groupRegisters(p.deviceSetting.Registers)
-	payload := models.Payload{
+	payload := models.SensorEnergy{
 		Timestamp:   time.Now(),
 		UnixTime:    time.Now().Unix(),
 		SiteId:      p.deviceSetting.SiteId,
@@ -140,4 +136,10 @@ func (p *Processor) ProcessData() {
 		log.Fatalf("Error sending to MQTT server: %v", err)
 		os.Exit(1) // Ensures non-zero exit on error
 	}
+
+	result, err := p.mongodbClient.InsertOne("iot", "SensorEnergy", payload)
+	if err != nil {
+		log.Fatal("Failed to insert sensorEnergy:", err)
+	}
+	fmt.Printf("Inserted user with sensorEnergy: %v\n", result.InsertedID)
 }

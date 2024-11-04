@@ -27,7 +27,7 @@ func NewClient(broker, username, password string) *Client {
 	return &Client{client: client}
 }
 
-func (c *Client) PublishData(topic string, payload models.Payload) error {
+func (c *Client) PublishData(topic string, payload models.SensorEnergy) error {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		return err
