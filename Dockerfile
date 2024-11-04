@@ -18,6 +18,6 @@ FROM gcr.io/distroless/static-debian11
 
 # Copy the compiled binary from the build stage to the final image
 COPY --from=build /bin/app /bin
-COPY .env /app/.env
+
 # Set the command to run the application
 ENTRYPOINT [ "/bin/app" ]
