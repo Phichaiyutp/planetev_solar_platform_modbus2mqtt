@@ -1,10 +1,10 @@
 db.createUser({
-    user: "appuser",
-    pwd: "apppassword",
+    user: "pnevapp",
+    pwd: "pca1234",
     roles: [
         {
             role: "readWrite",
-            db: "mydatabase"
+            db: "iot"
         }
     ]
 });
