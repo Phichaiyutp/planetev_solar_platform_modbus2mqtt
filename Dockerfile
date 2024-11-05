@@ -1,12 +1,17 @@
 FROM golang:1.23.2 AS build-stage
 
+# Set environment variables for the build
+ENV GOPATH /go
 WORKDIR /app
 
+# Copy dependency files
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy the rest of the application
 COPY . ./
 
+# Build the application with specific settings
 RUN CGO_ENABLED=0 GOOS=linux go build -o /modbus-mqtt-service
 
 # Run the tests in the container
@@ -16,12 +21,22 @@ RUN go test -v ./...
 # Deploy the application binary into a lean image
 FROM gcr.io/distroless/base-debian11 AS build-release-stage
 
-WORKDIR /
+WORKDIR /app
 
-COPY --from=build-stage /modbus-mqtt-service /modbus-mqtt-service
+# Copy the binary from build stage
+COPY --from=build-stage /modbus-mqtt-service /app/modbus-mqtt-service
 
-#EXPOSE 8080
+# Copy environment file
+# Note: Make sure to create a .env file in your project directory
+COPY .env /app/.env
+
+# Optional: Set environment variables directly in Dockerfile
+# ENV KEY=value
+# ENV DATABASE_URL=your-database-url
+# ENV MQTT_BROKER=your-mqtt-broker
+
+EXPOSE 8080
 
 USER nonroot:nonroot
 
-ENTRYPOINT ["/modbus-mqtt-service"]
+ENTRYPOINT ["/app/modbus-mqtt-service"]
