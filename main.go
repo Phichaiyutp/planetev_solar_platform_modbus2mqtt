@@ -47,9 +47,9 @@ func main() {
 	}
 
 	// Initialize Modbus client
-	if err := modbus.PingPort(deviceSetting.DeviceIp, int(deviceSetting.DevicePort), 3); err != nil {
+	/* if err := modbus.PingPort(deviceSetting.DeviceIp, int(deviceSetting.DevicePort), 3); err != nil {
 		log.Fatalf("Error connecting to Modbus Converter: %v", err)
-	}
+	} */
 
 	address := fmt.Sprintf("%s:%d", deviceSetting.DeviceIp, deviceSetting.DevicePort)
 	modbusClient, err := modbus.NewClient(address, byte(deviceSetting.SlaveId), 1*time.Second)
