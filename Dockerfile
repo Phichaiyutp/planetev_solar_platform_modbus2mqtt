@@ -1,23 +1,27 @@
-# Use the Go 1.23.2 bookworm image for building the application
-FROM golang:1.23.2-bookworm AS build
+FROM golang:1.23.2 AS build-stage
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the current directory contents into the container
-COPY . ./
-
-# Download Go module dependencies
+COPY go.mod go.sum ./
 RUN go mod download
 
-# Build the Go application, setting CGO_ENABLED=0 to build a static binary
-RUN CGO_ENABLED=0 go build -o /bin/app
+COPY *.go ./
 
-# Use a minimal distroless image for the final build
-FROM gcr.io/distroless/static-debian11
+RUN CGO_ENABLED=0 GOOS=linux go build -o /modbus-mqtt-service
 
-# Copy the compiled binary from the build stage to the final image
-COPY --from=build /bin/app /bin
+# Run the tests in the container
+FROM build-stage AS run-test-stage
+RUN go test -v ./...
 
-# Set the command to run the application
-ENTRYPOINT [ "/bin/app" ]
+# Deploy the application binary into a lean image
+FROM gcr.io/distroless/base-debian11 AS build-release-stage
+
+WORKDIR /
+
+COPY --from=build-stage /modbus-mqtt-service /modbus-mqtt-service
+
+#EXPOSE 8080
+
+USER nonroot:nonroot
+
+ENTRYPOINT ["/modbus-mqtt-service"]

@@ -2,13 +2,10 @@ version: '3.8'
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: go-app:latest
+    build: .
     container_name: modbus_51012799_sensor_meter_01
     env_file:
-      - .env 
+      - ./.env 
     restart: on-failure
 
   mongodb:
